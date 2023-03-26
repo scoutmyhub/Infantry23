@@ -1,73 +1,108 @@
 #ifndef VISION_H
 #define VISION_H
 
-
 #include "main.h"
-#include "arm_math.h"
 #include "user_lib.h"
-#include "referee.h"
+#include "arm_math.h"
+#include "stm32f4xx_hal.h"
+#include "gimbal_behaviour.h"
 #include "remote_control.h"
+#include "gimbal_task.h"
+#include "INS_task.h"
+#include "referee.h"
+#include "referee_usart_task.h"
+#include "Vision.h"
 
-#define  Vision_SMALL_BUFF_KEY  KEY_PRESSED_OFFSET_C
-#define Vision_BIG_BUFF_KEY KEY_PRESSED_OFFSET_V
+#include "struct_typedef.h"
+#include "BMI088driver.h"
+#include "BMI088reg.h"
+#include "BMI088Middleware.h"
 
-#define MAX_DMA_COUNT 100
-
-/**
- *	@brief	自身颜色
- */
-typedef enum
+#define VISION_HUART huart1
+typedef union
 {
-    UNKNOWN = 0,
-    I_AM_BLUE = 1,
-    I_AM_RED = 2,
-} Color_t;
+    float f_data;
+    uint8_t byte[4];
+} FloatUChar_t;
 
-/*INS_OFFSET 偏移量*/
-typedef enum
-{
-    INS_Pitch = 0,
-    INS_Yaw = 1,
-    INS_Roll = 3,
-} INS_Offset_t;
-
-/*控制行为*/
-typedef enum
-{
-    ACT_Err = 0,
-    ACT_NORMOL = 1, //普通模式
-    ACT_BIG_BUFF,   //大符模式
-    ACT_SMALL_BUFF, //小符模式
-    ACT_AUTO_AIM,   //自瞄模式
-    ACT_MODE_CNT,
-} Action_t;
-
-/*视觉行为命令码*/
-typedef enum
-{
-    NO_VISION = 0x00,          //松开手时
-    CMD_AIM_AUTO = 0x01,       // 自瞄
-    CMD_AIM_SMALL_BUFF = 0x02, // 识别小符
-    CMD_AIM_BIG_BUFF = 0x03,   // 识别大符
-    CMD_AIM_SENTRY = 0x04,     // 击打哨兵
-    CMD_AIM_BASE = 0x05,       // 吊射基地
-} Vision_Cmd_Id_t;
-
-
-
-
+/*发送数据*/
 typedef struct
 {
-        const RC_ctrl_t *Vision_rc_ctrl;
+    uint8_t Length;
+    uint8_t Fire_Speed;
+    uint8_t Colour;
+    uint8_t Mode;
+    float Systime;
+} Vision_Data_t;
 
-}Vision_t;
+typedef struct Info
+{
+    uint8_t FrameHeader;
+    Vision_Data_t Vision_Data;
+    uint8_t FrameTailer;
+} Vision_Info;
 
+/*接受数据*/
+typedef struct
+{
+    uint8_t FrameHeader;
+    uint8_t Length;
+    uint8_t Distance;
+    float Pitch_Offset;
+    float Yaw_Offset;
+    float Goal_Speed;
+    float Timestamp;
+    uint8_t Shoot_Instruct;
+    uint8_t FrameTailer;
+} Receive_Data_t;
 
-extern uint8_t Get_Vision_Mode(void);
-extern uint16_t Get_Fire2_Speed(void);
-extern uint16_t Get_Fire2_Speed(void);
-extern uint8_t Get_Robot_Colour(void);
+typedef __packed struct
+{
+    char frame_head;
+    uint8_t a;
+    char b;
+    char c;
 
+    float yaw_angle;
+    float pitch_angle;
+    uint8_t state;
+    uint8_t mark;
+    uint8_t anti_top;
+    uint8_t color;
+    uint8_t shoot;
+    int delta_x;
+    int delta_y;
+    uint8_t frame_tail;
+} Vision_send_t;
+
+typedef __packed struct
+{
+    char frame_head;
+    float yaw_angle;
+    float pitch_angle;
+    float distance;
+    float time;
+    char shot_flag;
+    char frame_tail;
+} VisionRecvData_t;
+
+typedef union
+{
+    float f_data;
+    uint8_t byte[4];
+} TX;
+
+extern void vision_send_task(void const *argument);
+extern void LanggoUartFrameIRQHandler(UART_HandleTypeDef *huart);
+extern VisionRecvData_t VisionRecvData;
+extern void Vision_task(void const *pvParameters);
+extern uint8_t Follow_Vision;
+extern void Kalman_Filter(void);
+extern float kalman_targetYaw, kalman_targetPitch;
+extern void Vision_Kalman_Init(void);
+extern void vision_send(void);
+extern const VisionRecvData_t* AimDataUpdate(void);
 
 #endif
+
 

@@ -17,3 +17,5 @@
 .\obj\gimbal_behaviour.o: ../bsp/boards/bsp_buzzer.h
 .\obj\gimbal_behaviour.o: ..\application\detect_task.h
 .\obj\gimbal_behaviour.o: ../components/algorithm/user_lib.h
+.\obj\gimbal_behaviour.o: D:\keil5\ARM\ARMCC\Bin\..\include\assert.h
+.\obj\gimbal_behaviour.o: D:\keil5\ARM\ARMCC\Bin\..\include\stdlib.h

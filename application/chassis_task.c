@@ -81,8 +81,8 @@ fp32 WARNING_POWER_BUFF = 50.0f;
 fp32 climb;
 fp32 climb_1;
 fp32 scopperil = 0;
-int16_t max_power=4500;//定义最大功率�?
-fp32  MAX_WHEEL_SPEED=1.5f;
+int16_t max_power = 4500; // 定义最大功率�?
+fp32 MAX_WHEEL_SPEED = 1.5f;
 /**
  * @brief          chassis task, osDelay CHASSIS_CONTROL_TIME_MS (2ms)
  * @param[in]      pvParameters: null
@@ -182,13 +182,13 @@ static void chassis_init(chassis_move_t *chassis_move_init)
   // first order low-pass filter  replace ramp function
   first_order_filter_init(&chassis_move_init->chassis_cmd_slow_set_vx, CHASSIS_CONTROL_TIME, chassis_x_order_filter);
   first_order_filter_init(&chassis_move_init->chassis_cmd_slow_set_vy, CHASSIS_CONTROL_TIME, chassis_y_order_filter);
-  ramp_init(&chassis_move_init->classis_ramp, CHASSIS_CONTROL_TIME , 2.5f, 0.0f);
-//  // max and min speed
-//  chassis_move_init->vx_max_speed = NORMAL_MAX_CHASSIS_SPEED_X;
-//  chassis_move_init->vx_min_speed = -NORMAL_MAX_CHASSIS_SPEED_X;
+  ramp_init(&chassis_move_init->classis_ramp, CHASSIS_CONTROL_TIME, 2.5f, 0.0f);
+  //  // max and min speed
+  //  chassis_move_init->vx_max_speed = NORMAL_MAX_CHASSIS_SPEED_X;
+  //  chassis_move_init->vx_min_speed = -NORMAL_MAX_CHASSIS_SPEED_X;
 
-//  chassis_move_init->vy_max_speed = NORMAL_MAX_CHASSIS_SPEED_Y;
-//  chassis_move_init->vy_min_speed = -NORMAL_MAX_CHASSIS_SPEED_Y;
+  //  chassis_move_init->vy_max_speed = NORMAL_MAX_CHASSIS_SPEED_Y;
+  //  chassis_move_init->vy_min_speed = -NORMAL_MAX_CHASSIS_SPEED_Y;
 
   // update data
   chassis_feedback_update(chassis_move_init);
@@ -278,8 +278,8 @@ static void chassis_feedback_update(chassis_move_t *chassis_move_update)
   // calculate chassis euler angle, if chassis add a new gyro sensor,please change this code
   chassis_move_update->chassis_yaw = rad_format(*(chassis_move_update->chassis_INS_angle + INS_YAW_ADDRESS_OFFSET) - chassis_move_update->chassis_yaw_motor->relative_angle);
   chassis_move_update->chassis_pitch = rad_format(*(chassis_move_update->chassis_INS_angle + INS_PITCH_ADDRESS_OFFSET) - chassis_move_update->chassis_pitch_motor->relative_angle);
-  //chassis_move_update->chassis_roll = *(chassis_move_update->chassis_INS_angle + INS_ROLL_ADDRESS_OFFSET);
-  
+  // chassis_move_update->chassis_roll = *(chassis_move_update->chassis_INS_angle + INS_ROLL_ADDRESS_OFFSET);
+
   chassis_jude_mode(chassis_move_update);
 }
 /**
@@ -341,7 +341,6 @@ void chassis_rc_to_control_vector(fp32 *vx_set, fp32 *vy_set, chassis_move_t *ch
 
   *vx_set = chassis_move_rc_to_vector->chassis_cmd_slow_set_vx.out;
   *vy_set = chassis_move_rc_to_vector->chassis_cmd_slow_set_vy.out;
-  
 }
 /**
  * @brief          set chassis control set-point, three movement control value is set by "chassis_behaviour_control_set".
@@ -386,7 +385,7 @@ static void chassis_set_contorl(chassis_move_t *chassis_move_control)
     chassis_move_control->wz_set = PID_calc(&chassis_move_control->chassis_angle_pid, 0.0f, delat_angle);
     chassis_move_control->vx_set = fp32_constrain(vx_set, chassis_move_control->vx_min_speed, chassis_move_control->vx_max_speed);
     chassis_move_control->vy_set = fp32_constrain(vy_set, chassis_move_control->vy_min_speed, chassis_move_control->vy_max_speed);
-	ramp_calc_min(&chassis_move_control->classis_ramp, 3.0f);
+    ramp_calc_min(&chassis_move_control->classis_ramp, 3.0f);
   }
   else if (chassis_move_control->chassis_mode == CHASSIS_VECTOR_NO_FOLLOW_YAW)
   {
@@ -394,7 +393,7 @@ static void chassis_set_contorl(chassis_move_t *chassis_move_control)
     chassis_move_control->wz_set = angle_set;
     chassis_move_control->vx_set = fp32_constrain(vx_set, chassis_move_control->vx_min_speed, chassis_move_control->vx_max_speed);
     chassis_move_control->vy_set = fp32_constrain(vy_set, chassis_move_control->vy_min_speed, chassis_move_control->vy_max_speed);
-	ramp_calc_min(&chassis_move_control->classis_ramp, 3.0f);
+    ramp_calc_min(&chassis_move_control->classis_ramp, 3.0f);
   }
   else if (chassis_move_control->chassis_mode == CHASSIS_VECTOR_RAW)
   {
@@ -403,7 +402,7 @@ static void chassis_set_contorl(chassis_move_t *chassis_move_control)
     chassis_move_control->wz_set = angle_set;
     chassis_move_control->chassis_cmd_slow_set_vx.out = 0.0f;
     chassis_move_control->chassis_cmd_slow_set_vy.out = 0.0f;
-	ramp_calc_min(&chassis_move_control->classis_ramp, 3.0f);
+    ramp_calc_min(&chassis_move_control->classis_ramp, 3.0f);
   }
 
   else if (chassis_move_control->chassis_mode == CHASSIS_VECTOR_TOP)
@@ -442,10 +441,17 @@ static void chassis_vector_to_mecanum_wheel_speed(const fp32 vx_set, const fp32 
   //  wheel_speed[1] = vx_set - vy_set + (CHASSIS_WZ_SET_SCALE - 1.0f) * MOTOR_DISTANCE_TO_CENTER * wz_set;
   //  wheel_speed[2] = vx_set + vy_set + (-CHASSIS_WZ_SET_SCALE - 1.0f) * MOTOR_DISTANCE_TO_CENTER * wz_set;
   //  wheel_speed[3] = -vx_set + vy_set + (-CHASSIS_WZ_SET_SCALE - 1.0f) * MOTOR_DISTANCE_TO_CENTER * wz_set;
+#if MecanumWheel
   wheel_speed[0] = -vx_set - vy_set - MOTOR_DISTANCE_TO_CENTER * wz_set;
   wheel_speed[1] = vx_set - vy_set - MOTOR_DISTANCE_TO_CENTER * wz_set;
   wheel_speed[2] = vx_set + vy_set - MOTOR_DISTANCE_TO_CENTER * wz_set;
   wheel_speed[3] = -vx_set + vy_set - MOTOR_DISTANCE_TO_CENTER * wz_set;
+#else
+  wheel_speed[0] = -vx_set - vy_set + (CHASSIS_WZ_SET_SCALE - 1.0f) * MOTOR_DISTANCE_TO_CENTER * wz_set;
+  wheel_speed[1] = -vx_set + vy_set + (CHASSIS_WZ_SET_SCALE - 1.0f) * MOTOR_DISTANCE_TO_CENTER * wz_set;
+  wheel_speed[2] = +vx_set + vy_set + (-CHASSIS_WZ_SET_SCALE - 1.0f) * MOTOR_DISTANCE_TO_CENTER * wz_set;
+  wheel_speed[3] = +vx_set - vy_set + (-CHASSIS_WZ_SET_SCALE - 1.0f) * MOTOR_DISTANCE_TO_CENTER * wz_set;
+#endif
 }
 
 /**
@@ -499,7 +505,7 @@ static void chassis_control_loop(chassis_move_t *chassis_move_control_loop)
   {
     PID_calc(&chassis_move_control_loop->motor_speed_pid[i], chassis_move_control_loop->motor_chassis[i].speed, chassis_move_control_loop->motor_chassis[i].speed_set - chassis_move_control_loop->classis_ramp.out);
     chassis_move_control_loop->classis_ramp.max_value = scopperil;
-//    PID_calc(&chassis_move_control_loop->motor_speed_pid[i], chassis_move_control_loop->motor_chassis[i].speed, chassis_move_control_loop->motor_chassis[i].speed_set);
+    //    PID_calc(&chassis_move_control_loop->motor_speed_pid[i], chassis_move_control_loop->motor_chassis[i].speed, chassis_move_control_loop->motor_chassis[i].speed_set);
   }
 
   chassis_power_control(chassis_move_control_loop);
@@ -512,68 +518,64 @@ static void chassis_control_loop(chassis_move_t *chassis_move_control_loop)
 
 void chassis_power_control(chassis_move_t *chassis_power_control)
 {
-    fp32 chassis_power = 0.0f;
-    fp32 chassis_power_buffer = 0.0f;
-    fp32 total_current_limit = 0.0f;
-    fp32 total_current = 0.0f;
-	
-	
+  fp32 chassis_power = 0.0f;
+  fp32 chassis_power_buffer = 0.0f;
+  fp32 total_current_limit = 0.0f;
+  fp32 total_current = 0.0f;
+
+  {
+    get_chassis_power_and_buffer(&chassis_power, &chassis_power_buffer);
+    if (chassis_power_buffer < WARNING_POWER_BUFF)
     {
-        get_chassis_power_and_buffer(&chassis_power, &chassis_power_buffer);
-        if(chassis_power_buffer < WARNING_POWER_BUFF)
+      fp32 power_scale;
+      if (chassis_power_buffer > 5.0f)
+      {
+        power_scale = chassis_power_buffer / WARNING_POWER_BUFF;
+      }
+      else
+      {
+        power_scale = 5.0f / WARNING_POWER_BUFF;
+      }
+      // scale down
+      total_current_limit = BUFFER_TOTAL_CURRENT_LIMIT * power_scale;
+    }
+    else
+    {
+      if (chassis_power > WARNING_POWER)
+      {
+        fp32 power_scale;
+        if (chassis_power < POWER_LIMIT)
         {
-            fp32 power_scale;
-            if(chassis_power_buffer > 5.0f)
-            {
-                power_scale = chassis_power_buffer / WARNING_POWER_BUFF;
-            }
-            else
-            {
-                power_scale = 5.0f / WARNING_POWER_BUFF;
-            }
-            //scale down
-            total_current_limit = BUFFER_TOTAL_CURRENT_LIMIT * power_scale;
+          power_scale = (POWER_LIMIT - chassis_power) / (POWER_LIMIT - WARNING_POWER);
         }
         else
         {
-            if(chassis_power > WARNING_POWER)
-            {
-                fp32 power_scale;
-                if(chassis_power < POWER_LIMIT)
-                {
-                    power_scale = (POWER_LIMIT - chassis_power) / (POWER_LIMIT - WARNING_POWER);
-                    
-                }
-                else
-                {
-                    power_scale = 0.0f;
-                }
-                
-                total_current_limit = BUFFER_TOTAL_CURRENT_LIMIT + POWER_TOTAL_CURRENT_LIMIT * power_scale;
-            }
-            else
-            {
-                total_current_limit = BUFFER_TOTAL_CURRENT_LIMIT + POWER_TOTAL_CURRENT_LIMIT;
-            }
+          power_scale = 0.0f;
         }
-    }
 
-    
-    total_current = 0.0f;
-    for(uint8_t i = 0; i < 4; i++)
-    {
-        total_current += fabs(chassis_power_control->motor_speed_pid[i].out);
+        total_current_limit = BUFFER_TOTAL_CURRENT_LIMIT + POWER_TOTAL_CURRENT_LIMIT * power_scale;
+      }
+      else
+      {
+        total_current_limit = BUFFER_TOTAL_CURRENT_LIMIT + POWER_TOTAL_CURRENT_LIMIT;
+      }
     }
-    
+  }
 
-    if(total_current > total_current_limit)
-    {
-        fp32 current_scale = total_current_limit / total_current;
-        chassis_power_control->motor_speed_pid[0].out*=current_scale;
-        chassis_power_control->motor_speed_pid[1].out*=current_scale;
-        chassis_power_control->motor_speed_pid[2].out*=current_scale;
-        chassis_power_control->motor_speed_pid[3].out*=current_scale;
-    }
+  total_current = 0.0f;
+  for (uint8_t i = 0; i < 4; i++)
+  {
+    total_current += fabs(chassis_power_control->motor_speed_pid[i].out);
+  }
+
+  if (total_current > total_current_limit)
+  {
+    fp32 current_scale = total_current_limit / total_current;
+    chassis_power_control->motor_speed_pid[0].out *= current_scale;
+    chassis_power_control->motor_speed_pid[1].out *= current_scale;
+    chassis_power_control->motor_speed_pid[2].out *= current_scale * 2.35f;
+    chassis_power_control->motor_speed_pid[3].out *= current_scale * 2.25f;
+  }
 }
 
 float chassis_power = 0.0;
@@ -798,19 +800,19 @@ static void chassis_jude_mode(chassis_move_t *chassis_move_update)
         chassis_move_update->vz_min_speed = -NORMAL_MAX_CHASSIS_SPEED_Z_80;
       }
     }
-    //				  if(chassis_move_update->chassis_RC->key.v & Fast_Run_flag)
-    //					  {
-    //							   WARNING_POWER_BUFF  =240.0f;
-    //							 	 MAX_WHEEL_SPEED=	MAX_WHEEL_SPEED_80_FLY;
-    //						     chassis_move_update->vx_max_speed =  NORMAL_MAX_CHASSIS_SPEED_X_80_FLY;
-    //						     chassis_move_update->vx_min_speed = -NORMAL_MAX_CHASSIS_SPEED_X_80_FLY;
-    //
-    //				    		 chassis_move_update->vy_max_speed =  NORMAL_MAX_CHASSIS_SPEED_Y_80_FLY;
-    //				    		 chassis_move_update->vy_min_speed = -NORMAL_MAX_CHASSIS_SPEED_Y_80_FLY;
-    //
-    //								 chassis_move_update->vz_max_speed =  NORMAL_MAX_CHASSIS_SPEED_Z_80;
-    //							   chassis_move_update->vz_min_speed = -NORMAL_MAX_CHASSIS_SPEED_Z_80;
-    //						}
+    if (chassis_move_update->chassis_RC->key.v & Fast_Run_flag)
+    {
+      WARNING_POWER_BUFF = 240.0f;
+      MAX_WHEEL_SPEED = MAX_WHEEL_SPEED_80_FLY;
+      chassis_move_update->vx_max_speed = NORMAL_MAX_CHASSIS_SPEED_X_80_FLY;
+      chassis_move_update->vx_min_speed = -NORMAL_MAX_CHASSIS_SPEED_X_80_FLY;
+
+      chassis_move_update->vy_max_speed = NORMAL_MAX_CHASSIS_SPEED_Y_80_FLY;
+      chassis_move_update->vy_min_speed = -NORMAL_MAX_CHASSIS_SPEED_Y_80_FLY;
+
+      chassis_move_update->vz_max_speed = NORMAL_MAX_CHASSIS_SPEED_Z_80;
+      chassis_move_update->vz_min_speed = -NORMAL_MAX_CHASSIS_SPEED_Z_80;
+    }
   }
 
   // 	  if(JudgeeverydataE.game_robot_status_t.robot_level==3)
@@ -866,8 +868,8 @@ static void chassis_jude_mode(chassis_move_t *chassis_move_update)
 
   else if (Chassis_Power_Limit() == 120)
   {
-    POWER_LIMIT = 120.0f;
-    WARNING_POWER = 110.0f;
+    POWER_LIMIT = 240.0f;
+    WARNING_POWER = 120.0f;
 
     max_power = 10000;
     scopperil = 3.2f;
@@ -887,7 +889,7 @@ static void chassis_jude_mode(chassis_move_t *chassis_move_update)
     {
       if (!(chassis_move_update->chassis_RC->key.v & Fast_Run_flag))
       {
-
+        WARNING_POWER_BUFF = 120.0f;
         MAX_WHEEL_SPEED = MAX_WHEEL_SPEED_120_t;
         chassis_move_update->vx_max_speed = NORMAL_MAX_CHASSIS_SPEED_X_120_t;
         chassis_move_update->vx_min_speed = -NORMAL_MAX_CHASSIS_SPEED_X_120_t;
@@ -898,7 +900,7 @@ static void chassis_jude_mode(chassis_move_t *chassis_move_update)
         chassis_move_update->vz_max_speed = NORMAL_MAX_CHASSIS_SPEED_Z_120;
         chassis_move_update->vz_min_speed = -NORMAL_MAX_CHASSIS_SPEED_Z_120;
       }
-      if (chassis_move_update->chassis_RC->key.v & Fast_Run_flag)
+      else if (chassis_move_update->chassis_RC->key.v & Fast_Run_flag)
       {
         WARNING_POWER_BUFF = 240.0f;
         MAX_WHEEL_SPEED = MAX_WHEEL_SPEED_120_FLY;
@@ -951,21 +953,12 @@ static void chassis_jude_mode(chassis_move_t *chassis_move_update)
   }
 }
 
-
 float TOP_Priority(void)
 {
-  if(chassis_move.chassis_mode == CHASSIS_VECTOR_TOP)
+  if (chassis_move.chassis_mode == CHASSIS_VECTOR_TOP)
   {
-	return 0.2;
+    return 0.2;
   }
   else
     return 0;
 }
-
-
-
-
-
-
-
-

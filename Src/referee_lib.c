@@ -39,6 +39,10 @@ uint16_t ID1_speed_limit(void)
 {
 	return robot_state.shooter_id1_17mm_speed_limit;
 }
+uint16_t ID1CoolingHeat(void)
+{
+	return power_heat_data_t.shooter_id1_17mm_cooling_heat;
+}
 
 
 uint16_t ID2_cooling_rate(void)
@@ -53,6 +57,10 @@ uint16_t ID2_speed_limit(void)
 {
 	return robot_state.shooter_id2_17mm_speed_limit;
 }
+uint16_t ID2CoolingHeat(void)
+{
+	return power_heat_data_t.shooter_id2_17mm_cooling_heat;
+}
 
 
 
@@ -63,7 +71,9 @@ uint8_t robot_buff(void)
 
 uint16_t Chassis_Power_Limit(void)
 {
-  return robot_state.chassis_power_limit;
+	return robot_state.chassis_power_limit;
 }
+
+
 
 

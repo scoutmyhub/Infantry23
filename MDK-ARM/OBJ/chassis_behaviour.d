@@ -8,6 +8,8 @@
 .\obj\chassis_behaviour.o: ..\application\remote_control.h
 .\obj\chassis_behaviour.o: ../bsp/boards/bsp_rc.h
 .\obj\chassis_behaviour.o: ../components/algorithm/user_lib.h
+.\obj\chassis_behaviour.o: D:\keil5\ARM\ARMCC\Bin\..\include\assert.h
+.\obj\chassis_behaviour.o: D:\keil5\ARM\ARMCC\Bin\..\include\stdlib.h
 .\obj\chassis_behaviour.o: ../Middlewares/Third_Party/FreeRTOS/Source/CMSIS_RTOS/cmsis_os.h
 .\obj\chassis_behaviour.o: ../Middlewares/Third_Party/FreeRTOS/Source/include/FreeRTOS.h
 .\obj\chassis_behaviour.o: D:\keil5\ARM\ARMCC\Bin\..\include\stddef.h

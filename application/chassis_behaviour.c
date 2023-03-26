@@ -82,7 +82,6 @@ static void chassis_open_set_control(fp32 *vx_set, fp32 *vy_set, fp32 *wz_set, c
 
 //highlight, the variable chassis behaviour mode 
 chassis_behaviour_e chassis_behaviour_mode = CHASSIS_ZERO_FORCE;
-static CHASSIS_MODE_CONTROL_T* CHASSIS_MODE_CONTROL;
 
 
 /**
@@ -90,31 +89,34 @@ static CHASSIS_MODE_CONTROL_T* CHASSIS_MODE_CONTROL;
   * @param[in]      chassis_move_mode: chassis data
   * @retval         none
   */
+uint16_t CHASSIS_TOP_KEY_T = 0;
+uint16_t LAST_CHASSIS_TOP_KEY = 0;
 void chassis_behaviour_mode_set(chassis_move_t *chassis_move_mode)
 {
+
     if (chassis_move_mode == NULL)
     {
         return;
     }
     
-    if(chassis_move_mode->chassis_RC->key.v & CHASSIS_TOP_KEY && CHASSIS_MODE_CONTROL->LAST_CHASSIS_TOP_KEY & CHASSIS_TOP_KEY)
+    if(chassis_move_mode->chassis_RC->key.v & CHASSIS_TOP_KEY && !(LAST_CHASSIS_TOP_KEY & CHASSIS_TOP_KEY))
     {
-        CHASSIS_MODE_CONTROL->CHASSIS_TOP_KEY_T = !CHASSIS_MODE_CONTROL->CHASSIS_TOP_KEY_T;
+        CHASSIS_TOP_KEY_T = !CHASSIS_TOP_KEY_T;
     }
-    CHASSIS_MODE_CONTROL->LAST_CHASSIS_TOP_KEY = chassis_move_mode->chassis_RC->key.v;
+    LAST_CHASSIS_TOP_KEY = chassis_move_mode->chassis_RC->key.v;
 
     //remote control  set chassis behaviour mode
-    if (switch_is_mid(chassis_move_mode->chassis_RC->rc.s[CHASSIS_MODE_CHANNEL]) /*&& !CHASSIS_MODE_CONTROL->CHASSIS_TOP_KEY_T*/ )
+    if (switch_is_mid(chassis_move_mode->chassis_RC->rc.s[CHASSIS_MODE_CHANNEL]) && !CHASSIS_TOP_KEY_T)
     {
         //can change to CHASSIS_ZERO_FORCE,CHASSIS_NO_MOVE,CHASSIS_INFANTRY_FOLLOW_GIMBAL_YAW,
         //CHASSIS_ENGINEER_FOLLOW_CHASSIS_YAW,CHASSIS_NO_FOLLOW_YAW,CHASSIS_OPEN
         chassis_behaviour_mode = CHASSIS_INFANTRY_FOLLOW_GIMBAL_YAW;
     }
-    else if (switch_is_down(chassis_move_mode->chassis_RC->rc.s[CHASSIS_MODE_CHANNEL]) && !CHASSIS_MODE_CONTROL->CHASSIS_TOP_KEY_T)
+    else if (switch_is_down(chassis_move_mode->chassis_RC->rc.s[CHASSIS_MODE_CHANNEL]) && !CHASSIS_TOP_KEY_T)
     {
         chassis_behaviour_mode = CHASSIS_NO_MOVE;
     }
-    else if (switch_is_up(chassis_move_mode->chassis_RC->rc.s[CHASSIS_MODE_CHANNEL]) || CHASSIS_MODE_CONTROL->CHASSIS_TOP_KEY_T)
+    else if (switch_is_up(chassis_move_mode->chassis_RC->rc.s[CHASSIS_MODE_CHANNEL]) || CHASSIS_TOP_KEY_T)
     {
         chassis_behaviour_mode = CHASSIS_TOP;
     }

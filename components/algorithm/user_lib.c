@@ -1,7 +1,7 @@
 #include "user_lib.h"
 #include "arm_math.h"
 
-//���ٿ���
+// ���ٿ���
 fp32 invSqrt(fp32 num)
 {
     fp32 halfnum = 0.5f * num;
@@ -21,7 +21,6 @@ void ramp_init(ramp_function_source_t *ramp_source_type, fp32 frame_period, fp32
     ramp_source_type->input = 0.0f;
     ramp_source_type->out = 0.0f;
 }
-
 
 void ramp_calc(ramp_function_source_t *ramp_source_type, fp32 input)
 {
@@ -50,7 +49,6 @@ void ramp_calc_min(ramp_function_source_t *ramp_source_type, fp32 input)
     }
 }
 
-
 void first_order_filter_init(first_order_filter_type_t *first_order_filter_type, fp32 frame_period, const fp32 num[1])
 {
     first_order_filter_type->frame_period = frame_period;
@@ -65,7 +63,7 @@ void first_order_filter_cali(first_order_filter_type_t *first_order_filter_type,
         first_order_filter_type->num[0] / (first_order_filter_type->num[0] + first_order_filter_type->frame_period) * first_order_filter_type->out + first_order_filter_type->frame_period / (first_order_filter_type->num[0] + first_order_filter_type->frame_period) * first_order_filter_type->input;
 }
 
-//��������
+// ��������
 void abs_limit(fp32 *num, fp32 Limit)
 {
     if (*num > Limit)
@@ -78,7 +76,6 @@ void abs_limit(fp32 *num, fp32 Limit)
     }
 }
 
-//�жϷ���λ
 fp32 sign(fp32 value)
 {
     if (value >= 0.0f)
@@ -91,7 +88,6 @@ fp32 sign(fp32 value)
     }
 }
 
-//��������
 fp32 fp32_deadline(fp32 Value, fp32 minValue, fp32 maxValue)
 {
     if (Value < maxValue && Value > minValue)
@@ -101,7 +97,6 @@ fp32 fp32_deadline(fp32 Value, fp32 minValue, fp32 maxValue)
     return Value;
 }
 
-//int26����
 int16_t int16_deadline(int16_t Value, int16_t minValue, int16_t maxValue)
 {
     if (Value < maxValue && Value > minValue)
@@ -111,7 +106,6 @@ int16_t int16_deadline(int16_t Value, int16_t minValue, int16_t maxValue)
     return Value;
 }
 
-//�޷�����
 fp32 fp32_constrain(fp32 Value, fp32 minValue, fp32 maxValue)
 {
     if (Value < minValue)
@@ -122,7 +116,6 @@ fp32 fp32_constrain(fp32 Value, fp32 minValue, fp32 maxValue)
         return Value;
 }
 
-//�޷�����
 int16_t int16_constrain(int16_t Value, int16_t minValue, int16_t maxValue)
 {
     if (Value < minValue)
@@ -133,7 +126,6 @@ int16_t int16_constrain(int16_t Value, int16_t minValue, int16_t maxValue)
         return Value;
 }
 
-//ѭ���޷�����
 fp32 loop_fp32_constrain(fp32 Input, fp32 minValue, fp32 maxValue)
 {
     if (maxValue < minValue)
@@ -160,10 +152,229 @@ fp32 loop_fp32_constrain(fp32 Input, fp32 minValue, fp32 maxValue)
     return Input;
 }
 
-//���ȸ�ʽ��Ϊ-PI~PI
-
-//�Ƕȸ�ʽ��Ϊ-180~180
 fp32 theta_format(fp32 Ang)
 {
     return loop_fp32_constrain(Ang, -180.0f, 180.0f);
 }
+
+// 队列初始化
+
+void InitQueue(Queue *Q)
+{
+
+    // 为队列分配存储空间
+    Q->base = (ElemType *)malloc(sizeof(ElemType) * MAXSIZE);
+    // assert(Q->base != NULL);
+    // 初始时队列为空，头指针和尾指针都指向0位置
+    Q->front = Q->rear = 0;
+}
+
+// 入队操作
+
+void EnQueue(Queue *Q, ElemType x)
+
+{
+
+    // 判断循环队列是否已满
+
+    if (((Q->rear + 1) % MAXSIZE) == Q->front)
+
+        return;
+
+    // 队列未满，将数据入队
+
+    Q->base[Q->rear] = x;
+
+    // 更改尾指针的指向
+
+    Q->rear = (Q->rear + 1) % MAXSIZE;
+}
+
+// 出队操作
+
+void DeQueue(Queue *Q)
+
+{
+
+    // 判断循环队列是否为空
+
+    if (Q->front == Q->rear)
+
+        return;
+
+    // 如果非空，实现可循环出队
+
+    Q->front = (Q->front + 1) % MAXSIZE;
+}
+
+// 获取队头元素
+
+void GetHdad(Queue *Q, ElemType *v)
+{
+
+    // 判断循环队列是否为空
+
+    if (Q->front == Q->rear)
+
+        return;
+
+    // 如果队列不为空，获取队头元素
+
+    *v = Q->base[Q->front];
+}
+
+// 获取队列长度（元素个数）
+int Length(Queue *Q)
+{
+
+    // 计算尾指针位置与头指针位置的差距
+
+    int len = Q->rear - Q->front;
+
+    // 如果为正数，那么len就是队列的长度；如果为负数，那么MAXSIZE+len才是队列的长度
+
+    len = (len > 0) ? len : MAXSIZE + len;
+
+    return len;
+}
+
+// 清空队列
+
+void ClearQueue(Queue *Q)
+
+{
+
+    // 将队头指针和队尾指针都置为0
+
+    Q->front = Q->rear = 0;
+}
+
+// 销毁队列
+
+void DestroyQueue(Queue *Q)
+
+{
+
+    // 释放队列的存储空间
+
+    free(Q->base);
+
+    // 将队列基址置空
+
+    Q->base = NULL;
+}
+
+
+/*数组实现队列*/
+
+void Queueinit(struct queue *q)
+{
+	q->front = q->tail = 0;
+	q->empty = 1;
+}
+
+void enqueue(struct queue *q, float value)
+{
+	if (!q->empty && q->front == q->tail) {
+//		return 0;
+	}
+	q->empty = 0;
+	q->data[q->tail] = value;
+	q->tail = (q->tail + 1) % QUEUE_SIZE;
+}
+
+int dequeue(struct queue *q)
+{
+	if (q->empty)
+		return -1;
+	int value = q->data[q->front];
+	q->front = (q->front + 1) % QUEUE_SIZE;
+	if (q->front == q->tail)
+		q->empty = 1;
+	return value;
+}
+
+/*目标加速度的队列数据*/
+QueueObj PitchAngle=
+{
+    .nowLength =0,
+    .queueLength = 100,
+    .queue = {0},
+    .queueTotal = 0,
+    .full_flag=0
+};
+void  LoopQueuePitch(uint8_t queue_len,float Data)
+{
+    if(queue_len>PitchAngle.queueLength)
+        queue_len=PitchAngle.queueLength;
+    //防止溢出
+
+
+    if(PitchAngle.nowLength<queue_len)
+    {
+        //队列未满，只进不出
+        PitchAngle.queue[PitchAngle.nowLength] = Data;
+        PitchAngle.nowLength++;
+    }
+    else
+    {
+        //队列已满，FIFO。
+        for(uint16_t i=0; i<queue_len-1; i++)
+        {
+            PitchAngle.queue[i] = PitchAngle.queue[i+1];
+            //更新队列
+        }
+        PitchAngle.queue[queue_len-1] = Data;
+    }
+
+}
+
+
+/*目标距离趋势的队列数据*/
+QueueObj YawAngle=
+{
+    .nowLength =0,
+    .queueLength = 100,
+    .queue = {0},
+    .queueTotal = 0,
+    .full_flag=0
+};
+
+void  LoopQueueYaw(uint8_t queue_len,float Data)
+{
+    if(queue_len>YawAngle.queueLength)
+        queue_len=YawAngle.queueLength;
+    //防止溢出
+
+
+    if(YawAngle.nowLength<queue_len)
+    {
+        //队列未满，只进不出
+        YawAngle.queue[YawAngle.nowLength] = Data;
+        YawAngle.nowLength++;
+    }
+    else
+    {
+        //队列已满，FIFO。
+        for(uint16_t i=0; i<queue_len-1; i++)
+        {
+            YawAngle.queue[i] = YawAngle.queue[i+1];
+            //更新队列
+        }
+        YawAngle.queue[queue_len-1] = Data;
+    }
+
+}
+
+void Clear_Queue(QueueObj* queue)
+{
+    for(uint16_t i=0; i<queue->queueLength; i++)
+    {
+        queue->queue[i]=0;
+    }
+    queue->nowLength = 0;
+    queue->queueTotal = 0;
+    queue->full_flag=0;
+}
+
+

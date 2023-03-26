@@ -7,6 +7,8 @@
 .\obj\chassis_task.o: ..\application\remote_control.h
 .\obj\chassis_task.o: ../bsp/boards/bsp_rc.h
 .\obj\chassis_task.o: ../components/algorithm/user_lib.h
+.\obj\chassis_task.o: D:\keil5\ARM\ARMCC\Bin\..\include\assert.h
+.\obj\chassis_task.o: D:\keil5\ARM\ARMCC\Bin\..\include\stdlib.h
 .\obj\chassis_task.o: ..\application\chassis_behaviour.h
 .\obj\chassis_task.o: ../Inc/referee_lib.h
 .\obj\chassis_task.o: ../Inc/main.h
@@ -76,6 +78,10 @@
 .\obj\chassis_task.o: ..\application\detect_task.h
 .\obj\chassis_task.o: ..\application\INS_task.h
 .\obj\chassis_task.o: ../Inc/Vision_Task.h
+.\obj\chassis_task.o: ../Inc/kalman.h
+.\obj\chassis_task.o: D:\keil5\ARM\ARMCC\Bin\..\include\stdio.h
+.\obj\chassis_task.o: D:\keil5\ARM\ARMCC\Bin\..\include\stdbool.h
+.\obj\chassis_task.o: ../Inc/Vision.h
 .\obj\chassis_task.o: ../application/gimbal_behaviour.h
 .\obj\chassis_task.o: ../application/INS_task.h
 .\obj\chassis_task.o: ../application/referee.h
@@ -85,4 +91,7 @@
 .\obj\chassis_task.o: ../components/devices/BMI088driver.h
 .\obj\chassis_task.o: ../components/devices/BMI088reg.h
 .\obj\chassis_task.o: ../components/devices/BMI088Middleware.h
+.\obj\chassis_task.o: ../bsp/boards/bsp_usart.h
+.\obj\chassis_task.o: ../Inc/usart.h
+.\obj\chassis_task.o: ../Middlewares/Third_Party/FreeRTOS/Source/CMSIS_RTOS/cmsis_os.h
 .\obj\chassis_task.o: ..\application\chassis_power_control.h

@@ -70,10 +70,17 @@
 .\obj\gimbal_task.o: D:\keil5\ARM\ARMCC\Bin\..\include\string.h
 .\obj\gimbal_task.o: D:\keil5\ARM\ARMCC\Bin\..\include\math.h
 .\obj\gimbal_task.o: ../components/algorithm/user_lib.h
+.\obj\gimbal_task.o: D:\keil5\ARM\ARMCC\Bin\..\include\assert.h
+.\obj\gimbal_task.o: D:\keil5\ARM\ARMCC\Bin\..\include\stdlib.h
 .\obj\gimbal_task.o: ..\application\detect_task.h
 .\obj\gimbal_task.o: ..\application\gimbal_behaviour.h
 .\obj\gimbal_task.o: ..\application\INS_task.h
 .\obj\gimbal_task.o: ../Inc/Vision_Task.h
+.\obj\gimbal_task.o: ../Inc/kalman.h
+.\obj\gimbal_task.o: D:\keil5\ARM\ARMCC\Bin\..\include\stdio.h
+.\obj\gimbal_task.o: D:\keil5\ARM\ARMCC\Bin\..\include\stdbool.h
+.\obj\gimbal_task.o: ../Inc/referee_lib.h
+.\obj\gimbal_task.o: ../Inc/Vision.h
 .\obj\gimbal_task.o: ../application/INS_task.h
 .\obj\gimbal_task.o: ../application/referee.h
 .\obj\gimbal_task.o: ../application/protocol/protocol.h
@@ -82,4 +89,7 @@
 .\obj\gimbal_task.o: ../components/devices/BMI088driver.h
 .\obj\gimbal_task.o: ../components/devices/BMI088reg.h
 .\obj\gimbal_task.o: ../components/devices/BMI088Middleware.h
+.\obj\gimbal_task.o: ../bsp/boards/bsp_usart.h
+.\obj\gimbal_task.o: ../Inc/usart.h
+.\obj\gimbal_task.o: ../Middlewares/Third_Party/FreeRTOS/Source/CMSIS_RTOS/cmsis_os.h
 .\obj\gimbal_task.o: ..\application\shoot.h

@@ -88,12 +88,17 @@
 .\obj\main.o: ../application/gimbal_task.h
 .\obj\main.o: ../components/controller/pid.h
 .\obj\main.o: ../components/algorithm/user_lib.h
+.\obj\main.o: D:\keil5\ARM\ARMCC\Bin\..\include\assert.h
 .\obj\main.o: ../application/detect_task.h
 .\obj\main.o: ../application/INS_task.h
 .\obj\main.o: ../Inc/Vision_Task.h
+.\obj\main.o: ../Inc/kalman.h
+.\obj\main.o: D:\keil5\ARM\ARMCC\Bin\..\include\stdbool.h
 .\obj\main.o: ../components/algorithm/Include/arm_math.h
 .\obj\main.o: ../Drivers/CMSIS/Include/core_cm4.h
 .\obj\main.o: D:\keil5\ARM\ARMCC\Bin\..\include\math.h
+.\obj\main.o: ../Inc/referee_lib.h
+.\obj\main.o: ../Inc/Vision.h
 .\obj\main.o: ../application/gimbal_behaviour.h
 .\obj\main.o: ../application/INS_task.h
 .\obj\main.o: ../application/referee.h
@@ -103,6 +108,7 @@
 .\obj\main.o: ../components/devices/BMI088driver.h
 .\obj\main.o: ../components/devices/BMI088reg.h
 .\obj\main.o: ../components/devices/BMI088Middleware.h
+.\obj\main.o: ../Middlewares/Third_Party/FreeRTOS/Source/CMSIS_RTOS/cmsis_os.h
 .\obj\main.o: ../application/led_flow_task.h
 .\obj\main.o: ../application/oled_task.h
 .\obj\main.o: ../application/usb_task.h

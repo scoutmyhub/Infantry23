@@ -23,6 +23,7 @@
 #include "gimbal_task.h"
 #include "remote_control.h"
 #include "user_lib.h"
+#include "kalman.h"
 
 //射击发射开关通道数据
 #define Shoot_RC_Channel_right 0
@@ -33,13 +34,18 @@
 
 #define SHOOT_FRIC_PWM_ADD_VALUE 100.0f
 
+//
+#define Normal_Mode 1
+
 //射击摩擦轮激光打开 关闭
-#define SHOOT_OPEN_FIRE KEY_PRESSED_OFFSET_R
+#define SHOOT_OPEN_FIRE KEY_PRESSED_OFFSET_E
+
+
 
 //(组合键)升高或降低摩擦轮的转速
 #define FIRE_UP_DONE_RPM KEY_PRESSED_OFFSET_CTRL
 #define FIRE_UP_RPM KEY_PRESSED_OFFSET_Q
-#define FIRE_DONE_RPM KEY_PRESSED_OFFSET_E
+#define FIRE_DONE_RPM  KEY_PRESSED_OFFSET_R
 
 //降低 / 升高摩擦轮的转速
 #define RPM_UP_DATA 5.0f
@@ -73,11 +79,14 @@
 #define  BLOCK_TRIGGER_SPEED  1.0f
 
 /*摩擦轮电机最大输出限制*/
-#define FIRE_left_SPEED_PID_MAX_OUT 20000.0f
-#define FIRE_left_SPEED_PID_MAX_IOUT 0.0f
+#define FIRE_left_SPEED_PID_MAX_OUT 15000.0f
+#define FIRE_left_SPEED_PID_MAX_IOUT 1000.0f
 
-#define FIRE_right_SPEED_PID_MAX_OUT 20000.0f
-#define FIRE_right_SPEED_PID_MAX_IOUT 0.0f
+#define FIRE_right_SPEED_PID_MAX_OUT 15000.0f
+#define FIRE_right_SPEED_PID_MAX_IOUT 1000.0f
+
+#define FIRE_MOMENT_PID_MAX_OUT 15000.0f
+#define FIRE_MOMENT_PID_MAX_IOUT 1000.0f
 //拨弹轮电机PID
 #define TRIGGER_ANGLE_PID_KP 0.3f
 #define TRIGGER_ANGLE_PID_KI 0.0f
@@ -112,7 +121,6 @@ typedef enum
   SHOOT_DONE,
 } shoot_mode_e;
 
-/*摩擦轮电机数据*/
 typedef struct
 {
   float Fire_right_speed;
@@ -122,7 +130,7 @@ typedef struct
   int16_t Given_current;  
 }Fire_Data_t;
 
-/*按键记录*/
+
 typedef struct
 {
   int8_t LAST_SHOOT_SWITCH_CLIP_KEY;//记录弹仓按键
@@ -142,7 +150,7 @@ typedef struct
 }Control_FALG_t;
 
 
-/*按键时间的记录*/
+
 typedef struct
 {
   uint8_t KEY;
@@ -152,19 +160,29 @@ typedef struct
   uint32_t Manual_Reset_FLAG;/*复位*/
 }Control_Time_t;
 
-/*滤波*/
+
 typedef struct 
 {
   ramp_function_source_t fric1_ramp;
   ramp_function_source_t fric2_ramp;
 }Ramp_Data_t;
 
-/*卡弹*/
+
 typedef struct
 {
   int block_time;
   int Reset_ECD;
 }Turn_Back_Data_t;
+
+typedef struct
+{
+  uint16_t index;
+  uint16_t heat;
+  uint16_t HeatLimit;
+  int Lastheat;
+  int FireableBullet;
+  uint8_t flag;
+}HeatLimitData_t;
 
 
 typedef struct
@@ -176,12 +194,15 @@ typedef struct
   Fire_Data_t Fire_Data;
   Control_Time_t Control_Time;
   Ramp_Data_t Ramp_Data_t;
+  extKalman_t Shootkalman;
   Turn_Back_Data_t Turn_Back_Data;
+  HeatLimitData_t HeatLimitData;
 } shoot_control_t;
 
-//由于射击和云台使用同一个can的id故也射击任务在云台任务中执行
+
 extern void shoot_init(void);
-extern int16_t shoot_control_loop(void);
+extern void shoot_control_loop(void);
 // float Get_fire_rate(uint16_t speed);
 float Get_SHOOT_RPM(void);
+void HeatLimitUpdate(shoot_control_t *ShootHeatLimit);
 #endif

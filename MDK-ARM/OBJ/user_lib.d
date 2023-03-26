@@ -1,6 +1,8 @@
 .\obj\user_lib.o: ..\components\algorithm\user_lib.c
 .\obj\user_lib.o: ..\components\algorithm\user_lib.h
 .\obj\user_lib.o: ../application/struct_typedef.h
+.\obj\user_lib.o: D:\keil5\ARM\ARMCC\Bin\..\include\assert.h
+.\obj\user_lib.o: D:\keil5\ARM\ARMCC\Bin\..\include\stdlib.h
 .\obj\user_lib.o: ../components/algorithm/Include/arm_math.h
 .\obj\user_lib.o: ../Drivers/CMSIS/Include/core_cm4.h
 .\obj\user_lib.o: D:\keil5\ARM\ARMCC\Bin\..\include\stdint.h

@@ -301,3 +301,19 @@ void sbus_to_usart1(uint8_t *sbus)
     usart1_tx_dma_enable(usart_tx_buf, 20);
 }
 
+
+bool_t UseMouseRight(void)
+{
+    if(rc_ctrl.mouse.press_r)
+    {
+        return 1;
+    }
+    else 
+    {
+        return 0;
+    }
+}
+
+
+
+

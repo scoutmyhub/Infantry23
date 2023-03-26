@@ -18,11 +18,8 @@ void Low_Pass_Filter_Init(Low_Pass_Filter_t *Low_Pass_Filter, fp32 frame_period,
 void Low_Pass_Filter_OUT(Low_Pass_Filter_t *Low_Pass_Filter, fp32 input)
 {
     Low_Pass_Filter->input = input;
-    Low_Pass_Filter->out = Low_Pass_Filter->Trust / (Low_Pass_Filter->Trust + Low_Pass_Filter->frame_period) * Low_Pass_Filter->out 
+    Low_Pass_Filter->out = Low_Pass_Filter-> Trust/ (Low_Pass_Filter->Trust + Low_Pass_Filter->frame_period) * Low_Pass_Filter->out 
                          + Low_Pass_Filter->frame_period / (Low_Pass_Filter->Trust + Low_Pass_Filter->frame_period) * Low_Pass_Filter->input;
 }
-
-
-
 
 

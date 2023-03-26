@@ -22,12 +22,6 @@ typedef enum
 /*在CHASSIS_OPEN mode下，遥控器的比例*/
 #define CHASSIS_OPEN_RC_SCALE 10
 
-typedef struct
-{
-    uint8_t CHASSIS_TOP_KEY_T;
-    uint8_t LAST_CHASSIS_TOP_KEY;
-}CHASSIS_MODE_CONTROL_T;
-
 
 
 /**

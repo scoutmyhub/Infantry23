@@ -1,11 +1,50 @@
 #ifndef USER_LIB_H
 #define USER_LIB_H
 #include "struct_typedef.h"
-
+#include <assert.h>
+#include "stdlib.h"
 
 #define min(a,b) ((a)<(b)?(a):(b))
 #define max(a,b) ((a)>(b)?(a):(b))
 #define abs(x) ((x)>0?(x):-(x))
+
+
+//数据类型
+#define ElemType float
+//队列的最大空间
+#define MAXSIZE 10
+//队列的管理结构
+typedef struct
+{
+ElemType *base; //指向队列空间的基址
+int front; //头指针
+int rear; //尾指针
+}Queue;
+
+
+#define QUEUE_SIZE 50
+struct queue {
+	float  data[QUEUE_SIZE];
+	int front;
+	int  tail;
+	int empty;
+};
+
+
+typedef struct
+{
+    uint16_t nowLength;
+    uint16_t queueLength;
+    float queueTotal;
+    //长度
+    float queue[100];
+    uint8_t full_flag;
+} QueueObj;
+
+void Queueinit(struct queue *);
+void enqueue(struct queue *, float);
+int dequeue(struct queue *);
+
 
 
 typedef __packed struct
@@ -53,6 +92,19 @@ extern int16_t int16_constrain(int16_t Value, int16_t minValue, int16_t maxValue
 extern fp32 loop_fp32_constrain(fp32 Input, fp32 minValue, fp32 maxValue);
 //角度 °限幅 180 ~ -180
 extern fp32 theta_format(fp32 Ang);
+
+void InitQueue(Queue *Q);
+void EnQueue(Queue *Q, ElemType x);
+void ShowQueue(Queue *Q);
+void DeQueue(Queue *Q);
+void GetHdad(Queue *Q, ElemType *v);
+int Length(Queue *Q);
+void ClearQueue(Queue *Q);
+void DestroyQueue(Queue *Q);
+
+void Clear_Queue(QueueObj* queue);
+void LoopQueueYaw(uint8_t queue_len,float Data);
+void  LoopQueuePitch(uint8_t queue_len,float Data);
 
 //弧度格式化为-PI~PI
 #define rad_format(Ang) loop_fp32_constrain((Ang), -PI, PI)

@@ -41,19 +41,24 @@
 #define shoot_laser_off() laser_off() // 激光关闭宏定义
 
 /*射击总结构体*/
-shoot_control_t Shoot_motor;
+shoot_control_t ShootControl;
 shoot_mode_e shoot_mode = SHOOT_STOP; // 射击状态机
 
 pid_t trigger_motor_pid;           // 电机PID
 pid_type_def Fire_left_motor_pid;  // 摩擦轮
 pid_type_def Fire_right_motor_pid; // 摩擦轮
+pid_type_def FireLeftMoment;
+pid_type_def FireRightMoment;
 
 int poke_spd_ref, poke_pos_ref;
+float FireOffset =0.0f;
 
 Low_Pass_Filter_t ShootMotor_Left, ShootMotor_Right;
 
-float32_t Fire_left_speed_pid[3] = {10.5, 0, 9.5};
-float32_t Fire_right_speed_pid[3] = {10.5, 0, 9.5};
+float32_t Fire_left_speed_pid[3] = {13, 0, 10};
+float32_t Fire_right_speed_pid[3] = {13,0,10};
+float32_t FireLeftMomentPID[3] = {10, 0, 7};
+float32_t FireRightMomentPID[3] = {10, 0, 7};
 
 /*电机转一发所需要的编码器值（加减速箱）*/
 int Single_Data = 36864;
@@ -91,7 +96,7 @@ void FLAG_Init(void);
 void FLAG_Init(void)
 {
   static Control_SET_t Init = {0};
-  Shoot_motor.Last_Control_SET = Init;
+  ShootControl.Last_Control_SET = Init;
 }
 
 /**
@@ -104,8 +109,8 @@ void shoot_init(void)
   /*刷新数据*/
   shoot_feedback_update();
   /*目标值初始化*/
-  poke_pos_ref = Shoot_motor.shoot_motor_measure->total_angle;
-  poke_spd_ref = Shoot_motor.shoot_motor_measure->total_angle % 36864;
+  poke_pos_ref = ShootControl.shoot_motor_measure->total_angle;
+  poke_spd_ref = ShootControl.shoot_motor_measure->total_angle % 36864;
   /*初始化PID*/
   // 拨弹盘
   PID_struct_init(&pid_poke, POSITION_PID, BULLET_ANG_PID_MAX_OUT, BULLET_ANG_PID_MAX_IOUT, TRIGGER_ANGLE_PID_KP, TRIGGER_ANGLE_PID_KI, TRIGGER_ANGLE_PID_KD);         // 1.0.10
@@ -113,9 +118,13 @@ void shoot_init(void)
 
   PID_init(&Fire_left_motor_pid, PID_POSITION, Fire_left_speed_pid, FIRE_left_SPEED_PID_MAX_OUT, FIRE_left_SPEED_PID_MAX_IOUT);
   PID_init(&Fire_right_motor_pid, PID_POSITION, Fire_right_speed_pid, FIRE_right_SPEED_PID_MAX_OUT, FIRE_right_SPEED_PID_MAX_IOUT);
+  PID_init(&FireLeftMoment, PID_POSITION, FireLeftMomentPID, FIRE_MOMENT_PID_MAX_OUT, FIRE_MOMENT_PID_MAX_IOUT);
+  PID_init(&FireRightMoment, PID_POSITION, FireRightMomentPID, FIRE_MOMENT_PID_MAX_OUT, FIRE_MOMENT_PID_MAX_IOUT);
   // 低通滤波器的初始化
-  Low_Pass_Filter_Init(&ShootMotor_Left, 0.001, 0.01);
-  Low_Pass_Filter_Init(&ShootMotor_Right, 0.001, 0.01);
+  Low_Pass_Filter_Init(&ShootMotor_Left, 2, 0.45);
+  Low_Pass_Filter_Init(&ShootMotor_Right, 2, 0.45);
+
+
   /*标志位清零*/
 //  FLAG_Init();
 }
@@ -129,65 +138,75 @@ int16_t Fire_Left_OUT, Fire_Right_OUT;
  * @param[in]      void
  * @retval         返回can控制值
  */
-int16_t shoot_control_loop(void)
+void shoot_control_loop(void)
 {
   shoot_set_mode();
   trigger_motor_turn_back();
   shoot_feedback_update();
-  
+  HeatLimitUpdate(&ShootControl);
+
   if (shoot_mode == SHOOT_STOP)
   {
-    Shoot_motor.Fire_Data.Fire_right_speed_set = 0;
-    Shoot_motor.Fire_Data.Fire_left_speed_set = 0;
+    ShootControl.Fire_Data.Fire_right_speed_set = 0;
+    ShootControl.Fire_Data.Fire_left_speed_set = 0;
     shoot_fric_off();
     shoot_laser_off();
     shoot_CAN_Set_Current = 0;
   }
   else
   {
-    Shoot_motor.Fire_Data.Fire_right_speed_set = Get_SHOOT_RPM();
-    Shoot_motor.Fire_Data.Fire_left_speed_set = -Get_SHOOT_RPM();
+    ShootControl.Fire_Data.Fire_right_speed_set = Get_SHOOT_RPM();
+    ShootControl.Fire_Data.Fire_left_speed_set = -Get_SHOOT_RPM()+FireOffset;
     shoot_laser_on(); // 激光开启
   }
-
-  Low_Pass_Filter_OUT(&ShootMotor_Left, -motor_shoot[0].speed_rpm);
-  Low_Pass_Filter_OUT(&ShootMotor_Right, motor_shoot[1].speed_rpm);
+  
+  
+  
   Fire_Left = -motor_shoot[0].speed_rpm;
   Fire_Right = motor_shoot[1].speed_rpm;
+  Low_Pass_Filter_OUT(&ShootMotor_Left, motor_shoot[0].speed_rpm);
+  Low_Pass_Filter_OUT(&ShootMotor_Right, motor_shoot[1].speed_rpm);
   Fire_Left_Low = ShootMotor_Left.out;
   Fire_Right_Low = ShootMotor_Right.out;
-  PID_calc(&Fire_left_motor_pid, -ShootMotor_Left.out/*motor_shoot[0].speed_rpm*/, Shoot_motor.Fire_Data.Fire_left_speed_set);
-  PID_calc(&Fire_right_motor_pid, ShootMotor_Right.out/*motor_shoot[1].speed_rpm*/, Shoot_motor.Fire_Data.Fire_right_speed_set);
   
+  
+#if Normal_Mode  
+  PID_calc(&Fire_left_motor_pid, motor_shoot[0].speed_rpm , ShootControl.Fire_Data.Fire_left_speed_set);
+  PID_calc(&Fire_right_motor_pid, motor_shoot[1].speed_rpm , ShootControl.Fire_Data.Fire_right_speed_set);
+  PID_calc(&FireLeftMoment, motor_shoot[0].given_current, Fire_left_motor_pid.out);
+  PID_calc(&FireRightMoment, motor_shoot[1].given_current, Fire_right_motor_pid.out);
+#else
+  PID_calc(&Fire_left_motor_pid, ShootMotor_Left.out, ShootControl.Fire_Data.Fire_left_speed_set);
+  PID_calc(&Fire_right_motor_pid, ShootMotor_Right.out, ShootControl.Fire_Data.Fire_right_speed_set);
+#endif
   // 计算拨弹轮电机PID
-  pid_calc_old(&pid_poke, Shoot_motor.shoot_motor_measure->total_angle, poke_pos_ref);
-  pid_calc_old(&pid_poke_omg, Shoot_motor.shoot_motor_measure->speed_rpm, pid_poke.pos_out);
+  pid_calc_old(&pid_poke, ShootControl.shoot_motor_measure->total_angle, poke_pos_ref);
+  pid_calc_old(&pid_poke_omg, ShootControl.shoot_motor_measure->speed_rpm, pid_poke.pos_out);
 
   // 手动校准程序下档
-  if (Shoot_motor.Control_Time.Manual_Reset_FLAG < 5000) // 等待5s
+  if (ShootControl.Control_Time.Manual_Reset_FLAG < 5000) // 等待5s
   {
-    poke_pos_ref = Shoot_motor.shoot_motor_measure->total_angle;
-    poke_spd_ref = Shoot_motor.shoot_motor_measure->total_angle % 36864; // 保持处于校准状态
-    Shoot_motor.Control_Time.Manual_Reset_FLAG++;                        // 计时延时
+    poke_pos_ref = ShootControl.shoot_motor_measure->total_angle;
+    poke_spd_ref = ShootControl.shoot_motor_measure->total_angle % 36864; // 保持处于校准状态
+    ShootControl.Control_Time.Manual_Reset_FLAG++;                        // 计时延时
     shoot_CAN_Set_Current = 0;                                           // 电流值为0
   }
-  else if ((shoot_mode == SHOOT_STOP) && ((switch_is_down(Shoot_motor.RC_ctrl->rc.s[Shoot_RC_Channel_left])) || (switch_is_down(Shoot_motor.RC_ctrl->rc.s[Shoot_RC_Channel_right]))))
+  else if ((shoot_mode == SHOOT_STOP) && ((switch_is_down(ShootControl.RC_ctrl->rc.s[Shoot_RC_Channel_left])) || (switch_is_down(ShootControl.RC_ctrl->rc.s[Shoot_RC_Channel_right]))))
   {
     shoot_CAN_Set_Current = 0;
-    poke_pos_ref = Shoot_motor.shoot_motor_measure->total_angle;
-    poke_spd_ref = Shoot_motor.shoot_motor_measure->total_angle % 36864;
+    poke_pos_ref = ShootControl.shoot_motor_measure->total_angle;
+    poke_spd_ref = ShootControl.shoot_motor_measure->total_angle % 36864;
   }
 
-  else
+  else 
   {
     shoot_CAN_Set_Current = (int16_t)(pid_poke_omg.pos_out);
   }
 
   //		 CAN_CMD_SHOOT(0,0,0,0);
-  Fire_Left_OUT = (int16_t)Fire_left_motor_pid.out;
-  Fire_Right_OUT = (int16_t)Fire_right_motor_pid.out;
+  Fire_Left_OUT = (int16_t)FireLeftMoment.out;
+  Fire_Right_OUT = (int16_t)FireRightMoment.out;
   CAN_cmd_shoot(shoot_CAN_Set_Current, (int16_t)Fire_left_motor_pid.out, (int16_t)Fire_right_motor_pid.out, 0);
-  return shoot_CAN_Set_Current;
 }
 
 /**
@@ -195,36 +214,49 @@ int16_t shoot_control_loop(void)
  * @param[in]      void
  * @retval         void
  */
+ 
+int8_t LAST_SHOOT_OFF_KEYBOARD=0;
 void shoot_set_mode(void)
 {
   static int8_t last_s = RC_SW_UP;
-  if ((switch_is_up(Shoot_motor.RC_ctrl->rc.s[Shoot_RC_Channel_left]) && !switch_is_up(last_s) && shoot_mode == SHOOT_STOP) || ((Shoot_motor.RC_ctrl->key.v & SHOOT_OPEN_FIRE) && (!(Shoot_motor.Last_Control_SET.LAST_SHOOT_SWITCH_KEYBOARD & SHOOT_OPEN_FIRE)) && (shoot_mode == SHOOT_STOP))) 
+
+  shoot_feedback_update();
+  
+  if ((switch_is_up(ShootControl.RC_ctrl->rc.s[Shoot_RC_Channel_left]) && !switch_is_up(last_s) && shoot_mode == SHOOT_STOP) || ((ShootControl.RC_ctrl->key.v & SHOOT_OPEN_FIRE) && (!(LAST_SHOOT_OFF_KEYBOARD & SHOOT_OPEN_FIRE)) && (shoot_mode == SHOOT_STOP))) 
   {
     shoot_mode = SHOOT_READY;
   }
-  else if ((switch_is_up(Shoot_motor.RC_ctrl->rc.s[Shoot_RC_Channel_left]) && !switch_is_up(last_s) && shoot_mode != SHOOT_STOP) || ((Shoot_motor.RC_ctrl->key.v & SHOOT_OPEN_FIRE) && !(Shoot_motor.Last_Control_SET.LAST_SHOOT_SWITCH_KEYBOARD & SHOOT_OPEN_FIRE) && shoot_mode != SHOOT_STOP)) 
+  else if ((switch_is_up(ShootControl.RC_ctrl->rc.s[Shoot_RC_Channel_left]) && !switch_is_up(last_s) && shoot_mode != SHOOT_STOP) || ((ShootControl.RC_ctrl->key.v & SHOOT_OPEN_FIRE) && !(LAST_SHOOT_OFF_KEYBOARD & SHOOT_OPEN_FIRE) && shoot_mode != SHOOT_STOP)) 
   {
     shoot_mode = SHOOT_STOP;
+    ShootFTime = 0;
+
   }
-  if ((!switch_is_down(last_s) && (switch_is_down(Shoot_motor.RC_ctrl->rc.s[Shoot_RC_Channel_left]) && shoot_mode == SHOOT_READY)) || ((Shoot_motor.RC_ctrl->mouse.press_l && Shoot_motor.Last_Control_SET.LAST_PRESS_L == 0) && (shoot_mode == SHOOT_READY)))
+  
+  LAST_SHOOT_OFF_KEYBOARD = ShootControl.RC_ctrl->key.v;
+  if ((!switch_is_down(last_s) && (switch_is_down(ShootControl.RC_ctrl->rc.s[Shoot_RC_Channel_left]) && shoot_mode == SHOOT_READY)) || ((ShootControl.RC_ctrl->mouse.press_l && ShootControl.Last_Control_SET.LAST_PRESS_L == 0) && (shoot_mode == SHOOT_READY)))
   {
-    poke_pos_ref -= Single_Data;
-  }
-  if (Shoot_motor.RC_ctrl->mouse.press_l)
-  {
-    Shoot_motor.Control_Time.shoot_count_cnt++;
-    if (Shoot_motor.Control_Time.shoot_count_cnt >= 100)
+    poke_pos_ref -= Single_Data; 
+    if(ShootControl.HeatLimitData.flag)
     {
-      Shoot_motor.Control_Time.shoot_count_cnt = 101;
-      Shoot_motor.Control_FALG.SHOOT_SWITCH_KEYBOARD = true;
+      ShootControl.HeatLimitData.index++;
+    }
+  }
+  if (ShootControl.RC_ctrl->mouse.press_l)
+  {
+    ShootControl.Control_Time.shoot_count_cnt++;
+    if (ShootControl.Control_Time.shoot_count_cnt >= 100)
+    {
+      ShootControl.Control_Time.shoot_count_cnt = 101;
+      ShootControl.Control_FALG.SHOOT_SWITCH_KEYBOARD = true;
     }
   }
   else
   {
-    Shoot_motor.Control_FALG.SHOOT_SWITCH_KEYBOARD = false;
-    Shoot_motor.Control_Time.shoot_count_cnt = 0;
+    ShootControl.Control_FALG.SHOOT_SWITCH_KEYBOARD = false;
+    ShootControl.Control_Time.shoot_count_cnt = 0;
   }
-  if (Shoot_motor.Control_FALG.SHOOT_SWITCH_KEYBOARD && (shoot_mode == SHOOT_READY))
+  if (ShootControl.Control_FALG.SHOOT_SWITCH_KEYBOARD && (shoot_mode == SHOOT_READY))
   {
     ShootFTime++;
     if (ShootFTime >= ShootFNum)
@@ -233,10 +265,10 @@ void shoot_set_mode(void)
       ShootFTime = 0;
     }
   }
-  Shoot_motor.Last_Control_SET.LAST_PRESS_L = Shoot_motor.RC_ctrl->mouse.press_l;
+  ShootControl.Last_Control_SET.LAST_PRESS_L = ShootControl.RC_ctrl->mouse.press_l;
 
-  last_s = Shoot_motor.RC_ctrl->rc.s[Shoot_RC_Channel_left];
-  Shoot_motor.Last_Control_SET.LAST_SHOOT_SWITCH_KEYBOARD = Shoot_motor.RC_ctrl->key.v;
+  last_s = ShootControl.RC_ctrl->rc.s[Shoot_RC_Channel_left];
+  ShootControl.Last_Control_SET.LAST_SHOOT_SWITCH_KEYBOARD = ShootControl.RC_ctrl->key.v;
 }
 /**
  * @brief          射击数据更新
@@ -246,27 +278,29 @@ void shoot_set_mode(void)
 static void shoot_feedback_update(void)
 {
   /*遥控器指针*/
-  Shoot_motor.RC_ctrl = get_remote_control_point();
+  ShootControl.RC_ctrl = get_remote_control_point();
   /*电机数据更新*/
-  Shoot_motor.shoot_motor_measure = get_shoot_trigger_measure_point();
+  ShootControl.shoot_motor_measure = get_shoot_trigger_measure_point();
 }
 
 static void trigger_motor_turn_back(void)
 {
 
-  if (poke_pos_ref < Shoot_motor.shoot_motor_measure->total_angle - 5000)
+  if (poke_pos_ref < ShootControl.shoot_motor_measure->total_angle - 5000)
   {
-    Shoot_motor.Turn_Back_Data.block_time++;
+    ShootControl.Turn_Back_Data.block_time++;
   }
   else
   {
-    Shoot_motor.Turn_Back_Data.block_time = 0;
+    ShootControl.Turn_Back_Data.block_time = 0;
+    ShootControl.HeatLimitData.flag = 1;
   }
-  if (Shoot_motor.Turn_Back_Data.block_time > 900)
+  if (ShootControl.Turn_Back_Data.block_time > 900)
   {
-    Shoot_motor.Turn_Back_Data.Reset_ECD = (Shoot_motor.shoot_motor_measure->total_angle - poke_spd_ref) / Single_Data;
-    poke_pos_ref = Shoot_motor.Turn_Back_Data.Reset_ECD * Single_Data + poke_spd_ref;
-    Shoot_motor.Turn_Back_Data.block_time = 0;
+    ShootControl.Turn_Back_Data.Reset_ECD = (ShootControl.shoot_motor_measure->total_angle - poke_spd_ref) / Single_Data;
+    poke_pos_ref = ShootControl.Turn_Back_Data.Reset_ECD * Single_Data + poke_spd_ref;
+    ShootControl.HeatLimitData.flag = 0;
+    ShootControl.Turn_Back_Data.block_time = 0;
   }
 }
 
@@ -300,3 +334,26 @@ float Get_SHOOT_RPM(void)
 // 	double n = speed * 30.0f / (PI*FIRE_RADIUS)+Reality();
 // 	return  n;
 // }
+
+
+
+void HeatLimitUpdate(shoot_control_t *ShootHeatLimit)
+{
+  ShootHeatLimit->HeatLimitData.FireableBullet = (ID1_cooling_limit() - ID1CoolingHeat()) / 10;
+  ShootHeatLimit->HeatLimitData.heat = ID1CoolingHeat();
+  if(ShootControl.HeatLimitData.FireableBullet <= 1)
+  {
+    Single_Data = 0;
+  }
+  else 
+  {
+    Single_Data = 36864;
+  }
+  if(ID1CoolingHeat() <= ID1_cooling_limit()-20)
+  {
+    ShootFNum = 80;
+  }
+  else{
+    ShootFNum = 150;
+  }
+}

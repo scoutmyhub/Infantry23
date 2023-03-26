@@ -25,6 +25,10 @@ typedef struct
   float H;
 } extKalman_t;
 
+
+
+
+
 void KalmanCreate(extKalman_t *p, float T_Q, float T_R);
 float KalmanFilter(extKalman_t *p, float dat);
 /*************Ò»½×¿¨¶ûÂü END**************/

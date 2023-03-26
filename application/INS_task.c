@@ -134,7 +134,7 @@ static const fp32 fliter_num[3] = {1.929454039488895f, -0.93178349823448126f, 0.
 fp32 INS_quat[4] = {0.0f, 0.0f, 0.0f, 0.0f};
 fp32 INS_gyro[3] = {0.0f, 0.0f, 0.0f};
 fp32 INS_accel[3] = {0.0f, 0.0f, 0.0f};
-fp32 YawAngle = 0.0f, PitchAngle = 0.0f, RollAngle = 0.0f;
+//fp32 YawAngle = 0.0f, PitchAngle = 0.0f, RollAngle = 0.0f;
 
  fp32 INS_mag[3] = {0.0f, 0.0f, 0.0f};
 
@@ -235,7 +235,7 @@ void INS_task(void const *pvParameters)
         AHRS_update(INS_quat, timing_time, INS_gyro, accel_fliter_3, INS_mag);
 		
         get_angle(INS_quat, INS_angle + INS_YAW_ADDRESS_OFFSET, INS_angle + INS_PITCH_ADDRESS_OFFSET, INS_angle + INS_ROLL_ADDRESS_OFFSET);
-        QuaternionToEularAngle(INS_quat, &YawAngle, &PitchAngle, &RollAngle);
+//        QuaternionToEularAngle(INS_quat, &YawAngle, &PitchAngle, &RollAngle);
 
         //because no use ist8310 and save time, no use
         if(mag_update_flag &= 1 << IMU_DR_SHFITS)

@@ -53,3 +53,5 @@
 .\obj\pid.o: D:\keil5\ARM\ARMCC\Bin\..\include\string.h
 .\obj\pid.o: D:\keil5\ARM\ARMCC\Bin\..\include\math.h
 .\obj\pid.o: ../components/algorithm/user_lib.h
+.\obj\pid.o: D:\keil5\ARM\ARMCC\Bin\..\include\assert.h
+.\obj\pid.o: D:\keil5\ARM\ARMCC\Bin\..\include\stdlib.h

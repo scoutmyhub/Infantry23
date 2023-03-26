@@ -8,6 +8,8 @@
 .\obj\chassis_power_control.o: ..\application\remote_control.h
 .\obj\chassis_power_control.o: ../bsp/boards/bsp_rc.h
 .\obj\chassis_power_control.o: ../components/algorithm/user_lib.h
+.\obj\chassis_power_control.o: D:\keil5\ARM\ARMCC\Bin\..\include\assert.h
+.\obj\chassis_power_control.o: D:\keil5\ARM\ARMCC\Bin\..\include\stdlib.h
 .\obj\chassis_power_control.o: ../Inc/main.h
 .\obj\chassis_power_control.o: ../Drivers/STM32F4xx_HAL_Driver/Inc/stm32f4xx_hal.h
 .\obj\chassis_power_control.o: ../Inc/stm32f4xx_hal_conf.h

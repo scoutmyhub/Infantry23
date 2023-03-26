@@ -19,10 +19,12 @@ extern uint16_t get_robot_remain_HP(void);
 extern uint16_t ID1_cooling_rate(void);
 extern uint16_t ID1_cooling_limit(void);
 extern uint16_t ID1_speed_limit(void);
+extern uint16_t ID1CoolingHeat(void);
 
 extern uint16_t ID2_cooling_rate(void);
 extern uint16_t ID2_cooling_limit(void);
 extern uint16_t ID2_speed_limit(void);
+extern uint16_t ID2CoolingHeat(void);
 
 extern uint8_t robot_buff(void);
 

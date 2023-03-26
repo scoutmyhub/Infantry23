@@ -63,3 +63,5 @@
 .\obj\voltage_task.o: ../Middlewares/Third_Party/FreeRTOS/Source/include/event_groups.h
 .\obj\voltage_task.o: ../bsp/boards/bsp_adc.h
 .\obj\voltage_task.o: ../components/algorithm/user_lib.h
+.\obj\voltage_task.o: D:\keil5\ARM\ARMCC\Bin\..\include\assert.h
+.\obj\voltage_task.o: D:\keil5\ARM\ARMCC\Bin\..\include\stdlib.h

@@ -94,7 +94,7 @@ void referee_unpack_fifo_data(void)
   while ( fifo_s_used(&referee_fifo) )
   {
     byte = fifo_s_get(&referee_fifo);
-    switch(p_obj->unpack_step)
+    switch(p_obj->unpack_step) 
     {
       case STEP_HEADER_SOF:
       {

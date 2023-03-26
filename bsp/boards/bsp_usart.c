@@ -14,12 +14,10 @@ void usart1_tx_dma_init(void)
 {
 
     //enable the DMA transfer for the receiver and tramsmit request
-    //ʹ��DMA���ڽ��պͷ���
     SET_BIT(huart1.Instance->CR3, USART_CR3_DMAR);
     SET_BIT(huart1.Instance->CR3, USART_CR3_DMAT);
 
     //disable DMA
-    //ʧЧDMA
     __HAL_DMA_DISABLE(&hdma_usart1_tx);
 
     while(hdma_usart1_tx.Instance->CR & DMA_SxCR_EN)

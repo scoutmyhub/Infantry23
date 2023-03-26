@@ -12,6 +12,8 @@
 //??否启用底??
 #define CHASSIS_DISABLE 0
 
+#define MecanumWheel 1
+
 //in the beginning of task ,wait a time
 #define CHASSIS_TASK_INIT_TIME 357
 
@@ -185,18 +187,18 @@
 #define NORMAL_MAX_CHASSIS_SPEED_Y_100_FLY 3.5f
 
 //底盘运动过程最大前进速度   120
-#define MAX_WHEEL_SPEED_120 3.2f
-#define NORMAL_MAX_CHASSIS_SPEED_X_120 3.2f
-#define NORMAL_MAX_CHASSIS_SPEED_X_120_t 3.0f
+#define MAX_WHEEL_SPEED_120 4.0f
+#define NORMAL_MAX_CHASSIS_SPEED_X_120 4.0f
+#define NORMAL_MAX_CHASSIS_SPEED_X_120_t 4.0f
 //底盘运动过程最大平移速度  120
-#define MAX_WHEEL_SPEED_120_t 3.1f
-#define NORMAL_MAX_CHASSIS_SPEED_Y_120 2.7f
+#define MAX_WHEEL_SPEED_120_t 3.5f
+#define NORMAL_MAX_CHASSIS_SPEED_Y_120 3.4f
 #define NORMAL_MAX_CHASSIS_SPEED_Y_120_t 2.8f
 #define NORMAL_MAX_CHASSIS_SPEED_Z_120 10.0f
 //底盘运动过程最大平移速度   120飞坡
 #define MAX_WHEEL_SPEED_120_FLY 4.7f
 #define NORMAL_MAX_CHASSIS_SPEED_X_120_FLY 4.7f
-#define NORMAL_MAX_CHASSIS_SPEED_Y_120_FLY 4.7f
+#define NORMAL_MAX_CHASSIS_SPEED_Y_120_FLY 4.0f
 
 
 typedef enum
